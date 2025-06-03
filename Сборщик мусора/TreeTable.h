@@ -30,12 +30,12 @@ struct TNode {
             mem.pFirst[i].pLeft = &mem.pFirst[i + 1];
             mem.pFirst[i].key = -1;
             mem.pFirst[i].isValid = false;
-            mem.pFirst[i].isAlive = false; 
+            mem.pFirst[i].isAlive = false;
         }
         mem.pLast->pLeft = nullptr;
         mem.pLast->key = -1;
         mem.pLast->isValid = false;
-        mem.pLast->isAlive = false; 
+        mem.pLast->isAlive = false;
     }
 
     static void PrintFree() {
@@ -153,14 +153,14 @@ public:
         return true;
     }
 
-    void DeleteSubtree(TNode*& node) { 
+    void DeleteSubtree(TNode*& node) {
         if (node == nullptr) return;
         TNode* left = node->pLeft;
         TNode* right = node->pRight;
 
         delete node;
 
-        node = nullptr; 
+        node = nullptr;
     }
 
 
@@ -234,7 +234,7 @@ void TNode::ClearMem(TreeTable* t) {
     TNode* lastFree = nullptr;
 
     for (TNode* node = mem.pFirst; node <= mem.pLast; node++) {
-        if (!node->isAlive && node->isValid) {
+        if (!node->isAlive) {
             node->key = -1;
             node->pLeft = nullptr;
             node->pRight = nullptr;
@@ -246,15 +246,7 @@ void TNode::ClearMem(TreeTable* t) {
             else {
                 mem.pFree = node;
             }
-
             lastFree = node;
         }
-        else {
-            node->pLeft = nullptr;
-        }
-    }
-
-    if (lastFree) {
-        lastFree->pLeft = nullptr;
     }
 }

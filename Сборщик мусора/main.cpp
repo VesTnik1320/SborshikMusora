@@ -33,7 +33,7 @@ int main() {
     TNode::PrintFree();
 
     std::cout << "\nУдаляем элементы: 30, 70\n";
-    tree.Delete(30);
+    //tree.Delete(30);
     tree.Delete(70);
 
     std::cout << "\nДерево после удаления:\n";
