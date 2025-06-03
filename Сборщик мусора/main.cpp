@@ -4,7 +4,7 @@
 int main() {
     setlocale(LC_ALL, "Russian");
 
-    TNode::InitMem(15); // Увеличим память для большего количества узлов
+    TNode::InitMem(15); 
     std::cout << "Инициализирована память для 15 узлов\n";
     TNode::PrintFree();
 
@@ -61,3 +61,4 @@ int main() {
 
     return 0;
 }
+

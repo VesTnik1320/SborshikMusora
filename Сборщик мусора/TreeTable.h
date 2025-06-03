@@ -1,4 +1,4 @@
-#include <iostream>
+ï»¿#include <iostream>
 #include <stack>
 #include <string>
 #include <iomanip>
@@ -12,6 +12,8 @@ struct TNode {
     TNode* pLeft;
     TNode* pRight;
     bool isValid;
+    bool isAlive;
+    static void MarkAlive(TNode* node);
 
     static struct Mem {
         TNode* pFirst;
@@ -28,13 +30,16 @@ struct TNode {
             mem.pFirst[i].pLeft = &mem.pFirst[i + 1];
             mem.pFirst[i].key = -1;
             mem.pFirst[i].isValid = false;
+            mem.pFirst[i].isAlive = false; 
         }
         mem.pLast->pLeft = nullptr;
         mem.pLast->key = -1;
         mem.pLast->isValid = false;
+        mem.pLast->isAlive = false; 
     }
+
     static void PrintFree() {
-        std::cout << "Ñâîáîäíûå óçëû: ";
+        std::cout << "Ð¡Ð²Ð¾Ð±Ð¾Ð´Ð½Ñ‹Ðµ ÑƒÐ·Ð»Ñ‹: ";
         TNode* node = mem.pFree;
         while (node) {
             std::cout << (node - mem.pFirst) << " ";
@@ -47,7 +52,7 @@ struct TNode {
 
     void* operator new(size_t size) {
         if (mem.pFree == nullptr) {
-            throw str("Ïàìÿòü çàêîí÷èëàñü");
+            throw str("ÐŸÐ°Ð¼ÑÑ‚ÑŒ Ð·Ð°ÐºÐ¾Ð½Ñ‡Ð¸Ð»Ð°ÑÑŒ");
         }
 
         TNode* node = mem.pFree;
@@ -56,6 +61,7 @@ struct TNode {
         node->pLeft = nullptr;
         node->pRight = nullptr;
         node->isValid = true;
+        node->isAlive = false;
 
         return node;
     }
@@ -63,6 +69,7 @@ struct TNode {
         TNode* node = (TNode*)p;
         node->key = -1;
         node->isValid = false;
+        node->isAlive = false;
         node->pLeft = mem.pFree;
         mem.pFree = node;
     }
@@ -134,32 +141,28 @@ public:
         if (!Find(key)) {
             return false;
         }
-
-        TNode* toDelete = pCurr;
-
         if (pPrev == nullptr) {
-            pRoot = nullptr;
+            DeleteSubtree(pRoot);
         }
         else if (pPrev->pLeft == pCurr) {
-            pPrev->pLeft = nullptr;
+            DeleteSubtree(pPrev->pLeft);
         }
-        else {
-            pPrev->pRight = nullptr;
+        else if (pPrev->pRight == pCurr) {
+            DeleteSubtree(pPrev->pRight);
         }
-
-        DeleteSubtree(toDelete);
         return true;
     }
-    void DeleteSubtree(TNode* node) {
+
+    void DeleteSubtree(TNode*& node) { 
         if (node == nullptr) return;
+        TNode* left = node->pLeft;
+        TNode* right = node->pRight;
 
-        DeleteSubtree(node->pLeft);
-        DeleteSubtree(node->pRight);
-
-        node->pLeft = nullptr;
-        node->pRight = nullptr;
         delete node;
+
+        node = nullptr; 
     }
+
 
     void Reset() {
         while (!st.empty()) st.pop();
@@ -212,23 +215,30 @@ public:
 
     friend void TNode::ClearMem(TreeTable* t);
 };
+
+void TNode::MarkAlive(TNode* node) {
+    if (!node || node->isAlive) return;
+    node->isAlive = true;
+    MarkAlive(node->pLeft);
+    MarkAlive(node->pRight);
+}
+
 void TNode::ClearMem(TreeTable* t) {
     for (TNode* node = mem.pFirst; node <= mem.pLast; node++) {
-        node->isValid = false;
+        node->isAlive = false;
     }
 
-    for (t->Reset(); !t->isEnd(); t->GoNext()) {
-        t->GetCurr()->isValid = true;
-    }
+    MarkAlive(t->pRoot);
 
     mem.pFree = nullptr;
     TNode* lastFree = nullptr;
 
     for (TNode* node = mem.pFirst; node <= mem.pLast; node++) {
-        if (!node->isValid) {
+        if (!node->isAlive && node->isValid) {
             node->key = -1;
             node->pLeft = nullptr;
             node->pRight = nullptr;
+            node->isValid = false;
 
             if (lastFree) {
                 lastFree->pLeft = node;
@@ -236,7 +246,11 @@ void TNode::ClearMem(TreeTable* t) {
             else {
                 mem.pFree = node;
             }
+
             lastFree = node;
+        }
+        else {
+            node->pLeft = nullptr;
         }
     }
 
